@@ -1,0 +1,10 @@
+[project]
+name = "pgqueryguard"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "ruff>=0.12.12",
+    "sqlglot>=27.12.0",
+]

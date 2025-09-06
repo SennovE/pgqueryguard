@@ -1,1 +1,1 @@
-# SmartQueries
+# pgqueryguard
