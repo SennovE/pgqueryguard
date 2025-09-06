@@ -4,3 +4,7 @@ format:
 
 check:
 	uv run ruff check
+	uv run pyrefly check
+
+venv:
+	uv sync --frozen --no-install-project --group=dev

@@ -1,5 +1,5 @@
-from src.pgqueryguard.checker import check_query
-from src.pgqueryguard.optimizer import optimize_query
+from pgqueryguard.checker import check_query
+from pgqueryguard.optimizer import optimize_query
 
 import logging
 
