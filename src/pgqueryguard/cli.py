@@ -1,5 +1,5 @@
-from src.formatter import check_query
-from src.optimizer import optimize_query
+from src.pgqueryguard.checker import check_query
+from src.pgqueryguard.optimizer import optimize_query
 
 import logging
 
@@ -8,7 +8,7 @@ logging.basicConfig(
 )
 
 
-if __name__ == "__main__":
+def main():
     sql = """
         SELECT A OR (B OR (C AND D))
         FROM x
