@@ -19,7 +19,7 @@ uv run pgqueryguard ./file.sql
 uv run pgqueryguard ./file.sql --pg-format-file ./path/to/pg_formatter
 ```
 
-Для pg_format можно использовать конфиг, чтобы настроить форматирование. Для этого надо указать флаг --pg-format-cofig и путь к файлу.
+Для pg_format можно использовать конфиг, чтобы настроить форматирование. Для этого надо указать флаг --pg-format-config и путь к файлу.
 
 Пример конфига:
 

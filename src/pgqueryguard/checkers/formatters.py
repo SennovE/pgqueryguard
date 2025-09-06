@@ -12,7 +12,6 @@ logger = getLogger(__name__)
 
 
 def format_with_sqlglot(query: str):
-    logger.info("Formatting with sqlglot")
     formatted = sqlglot.transpile(query, write="postgres", pretty=True)[0]
     return formatted
 
@@ -23,7 +22,6 @@ async def format_with_pg_formatter(
     opts: list[str] | None = None,
     timeout: float = 10.0,
 ) -> str:
-    logger.info("Formatting with pg_format")
     opts = opts or []
     cmd = _pg_format_argv(pg_format_bin, opts)
 
