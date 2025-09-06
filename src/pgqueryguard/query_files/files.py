@@ -13,11 +13,8 @@ async def write_file(filename: Path, query: str):
 
 
 def get_sql_files(path: Path, recursive: bool) -> list[Path]:
-    if path.is_dir():
-        it = path.rglob("*.sql") if recursive else path.glob("*.sql")
-        files = sorted(p for p in it if p.is_file())
-        if not files:
-            return []
-    else:
-        files = [path]
-    return files
+    exts = {".sql", ".psql", ".pgsql"}
+    if path.is_file():
+        return [path] if path.suffix.lower() in exts else []
+    it = path.rglob("*") if recursive else path.glob("*")
+    return sorted(p for p in it if p.is_file() and p.suffix.lower() in exts)
