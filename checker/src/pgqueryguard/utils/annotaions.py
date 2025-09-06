@@ -39,3 +39,10 @@ FixOption = Annotated[
         help="If set to true, will format files",
     ),
 ]
+DBUrlOption = Annotated[
+    str,
+    typer.Option(
+        "--db-url",
+        help="Url for database connection",
+    ),
+]
