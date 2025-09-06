@@ -35,6 +35,13 @@ async def check_from_file(
         "-f",
         exists=True,
         readable=True,
+        help="Path to pg_format executable file",
+    ),
+    pg_format_cofig: Path | None = typer.Option(
+        None,
+        "--pg-format-cofig",
+        exists=True,
+        readable=True,
         help="Path to pg_format cofiguration file",
     ),
 ):
@@ -45,15 +52,13 @@ async def check_from_file(
         return
     # optimized_query = optimize_query(query)
     if pg_format_file:
+        opts = []
+        if pg_format_cofig:
+            opts = ["--no-rcfile", "-c", pg_format_cofig]
         formatted_query = await format_with_pg_formatter(
             query,
             pg_format_file,
-            opts=[
-                "-u", "2",
-                "-U", "1",
-                "-s", "2",
-                "-L",
-            ],
+            opts,
         )
     else:
         formatted_query = format_with_sqlglot(query)
