@@ -26,11 +26,11 @@ uv run pgqueryguard check ./path/to/directory
     
     Применяет форматирование к найденным файлам
 
-- `--db-url user:pass@localhost:5432/postgres`
+- `--db-url postgresql://user:pass@localhost:5432/postgres`
 
     Ссылка для подключения к БД. Если указана, то будет применена оптимизация запроса на основе типов запрашиваемых в sql аргументов.
 
-    (Вместо user:pass@localhost:5432/postgres надо указать ссылку для подключения к своей БД, на которую будет сделан запрос)
+    (Вместо postgresql://user:pass@localhost:5432/postgres надо указать ссылку для подключения к своей БД, на которую будет сделан запрос)
 
 - `--no-recursive`
 

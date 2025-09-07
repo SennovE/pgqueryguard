@@ -79,7 +79,7 @@ async def check(
             print_validation_errors(errors, file)
             error_files += 1
             continue
-        engine = create_engine(f"postgresql://{db_url}")
+        engine = create_engine(str(db_url))
         if db_url:
             scheme = get_column_types_from_sql(engine, query)
             query = optimize_query(query, scheme)
@@ -112,7 +112,7 @@ async def report(
     reports_subdir = os.path.join(output_dir, "reports")
     os.makedirs(reports_subdir, exist_ok=True)
 
-    engine = create_engine(f"postgresql://{db_url}")
+    engine = create_engine(str(db_url))
 
     for file in files:
         base_query = await read_file(file)
@@ -159,7 +159,7 @@ async def report(
             )
 
     write_index_page("pgqueryguard_reports", items_for_index)
-    print(f"=== Report: ./pgqueryguard_reports/index.html ===")
+    print("=== Report: ./pgqueryguard_reports/index.html ===")
 
 
 def main():
