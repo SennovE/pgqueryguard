@@ -28,7 +28,7 @@ services:
       PGUSER: appuser
       PGPASSWORD: secret
     volumes:
-      - ../checker:/checker          # ВАЖНО: путь из папки sql_files_examples на уровень выше
+      - ../checker:/checker      
     command: >
       bash -lc "
         apt-get update &&

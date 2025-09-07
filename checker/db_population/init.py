@@ -50,14 +50,12 @@ def _strip_comments(sql: str) -> str:
     return sql
 
 def _is_executable(sql: str) -> bool:
-    # убрать комменты и пробелы
     s = _strip_comments(sql).strip()
-    # выбросить одиночные ';'
     s = s.strip(';').strip()
     return bool(s)
 
 def run_sql_file(path):
-    with open(path, "r", encoding="utf-8-sig") as f:  # utf-8-sig на случай BOM
+    with open(path, "r", encoding="utf-8-sig") as f: 
         buf = f.read()
 
     pos = 0
@@ -68,25 +66,15 @@ def run_sql_file(path):
             if _is_executable(tail):
                 cur.execute(_strip_comments(tail))
             break
-
-        # выполнить SQL до COPY (если есть)
         pre = buf[pos:m.start()]
         if _is_executable(pre):
             cur.execute(_strip_comments(pre))
-
-        # --- обработка COPY ... FROM stdin ---
         data_start = m.end()
-
-        # найти строку-терминатор "\." (учитываем LF/CRLF и возможные пробелы)
         term = re.search(r'(?m)^[ \t]*\\\.[ \t]*\r?\n?', buf[data_start:])
         if not term:
             raise RuntimeError("COPY terminator (\\.) not found")
         term_abs_start = data_start + term.start()
-
-        # тело данных без завершающей строки "\."
         data = buf[data_start:term_abs_start]
-
-        # убрать возможный одиночный перевод строки сразу после "FROM stdin;"
         if data.startswith('\r\n'):
             data = data[2:]
         elif data.startswith('\n'):
@@ -94,8 +82,6 @@ def run_sql_file(path):
 
         copy_cmd = m.group(0).replace("FROM stdin", "FROM STDIN").strip()
         cur.copy_expert(copy_cmd, io.StringIO(data))
-
-        # перейти за terminator
         pos = term_abs_start + len(term.group(0))
 
 files = sorted(glob.glob(os.path.join(SQL_DIR, "*.sql")))
