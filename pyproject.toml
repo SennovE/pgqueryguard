@@ -9,7 +9,6 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "aiofiles>=24.1.0",
-    # на Windows стабильнее так:
     "psycopg2-binary>=2.9.10",
     "sqlalchemy>=2.0.43",
     "sqlglot>=27.12.0",
