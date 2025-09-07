@@ -11,8 +11,25 @@ import sqlglot
 logger = getLogger(__name__)
 
 
-def format_with_sqlglot(query: str):
-    formatted = sqlglot.transpile(query, write="postgres", pretty=True)[0]
+def format_with_sqlglot(query: str, opts: dict):
+    default_opts = {
+        "identify": False,
+        "normalize": False,
+        "normalize_functions": False,
+        "leading_comma": False,
+        "comments": True,
+        "pad": 2,
+        "indent": 2,
+        "max_text_width": 80,
+    }
+
+    for key, value in opts.items():
+        if key in default_opts:
+            default_opts[key] = value
+
+    formatted = sqlglot.transpile(
+        query, write="postgres", pretty=True, **default_opts
+    )[0]
     return formatted
 
 

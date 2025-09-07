@@ -9,25 +9,59 @@ make venv
 ---
 
 Запуск CLI из src\pgqueryguard\cli.py:
-```bash
-uv run pgqueryguard ./directory --fix
-```
-
-Для форматирования можно использовать pg_format, для этого надо указать флаг `--pg-format-file` и путь к конфигурации pg_format. Если запуск происходит с Windows, должен быть установлен Perl.
 
 ```bash
-uv run pgqueryguard ./file.sql  --fix --pg-format-file ./path/to/pg_formatter
+uv run pgqueryguard ./path/to/directory
 ```
 
-Для pg_format можно использовать конфиг, чтобы настроить форматирование. Для этого надо указать флаг --pg-format-config и путь к файлу.
+(./path/to/directory надо заменить на путь к директории, в которой будет проведет поиск файлов с sql запросами)
 
-Пример конфига:
+Без флагов происходит только проверка на корректность написания sql запросов в файлах *.sql, *.psql, *.pgsql.
 
-```
-keyword-case=2
-type-case=1
-spaces=2
-no-extra-line=1
-```
+Флаги:
+
+- `--fix`
+    
+    Применяет форматирование к найденным файлам
+
+- `--db-url user:pass@localhost:5432/postgres`
+
+    Ссылка для подключения к БД. Если указана, то будет применена оптимизация запроса на основе типов запрашиваемых в sql аргументов.
+
+    (Вместо user:pass@localhost:5432/postgres надо указать ссылку для подключения к своей БД, на которую будет сделан запрос)
+
+- `--no-recursive`
+
+    Указывает, что поиск sql файлов не надо производить рекурсивно.
+
+- `--pg-format-file ./path/to/file`
+
+    Для форматирования можно использовать pg_format, для этого надо указать флаг и путь к конфигурации pg_format. Если запуск происходит с Windows, должен быть установлен Perl.
+
+- `--config ./path/to/file`
+
+    Путь к файлу конфигурации для форматирования с pg-format, либо со стандартным форматированием.
+
+    Пример конфига для pg-format:
+
+    ```
+    keyword-case=2
+    type-case=1
+    spaces=2
+    no-extra-line=1
+    ```
+
+    Пример конфига для стандартного форматирования:
+
+    ```
+    identify=true
+    normalize=true
+    normalize_functions=true
+    leading_comma=true
+    comments=true
+    pad = 2
+    indent = 2
+    max_text_width = 80
+    ```
 
 ---

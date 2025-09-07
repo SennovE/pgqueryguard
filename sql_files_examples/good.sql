@@ -1,6 +1,18 @@
-WITH baz AS (SELECT a, c FROM foo WHERE a = 1)
+WITH baz AS (
     SELECT
-        f.a, b.b, baz.c,
-        CAST("b"."a" AS REAL) d FROM foo f
-    JOIN bar b ON f.a = b.a
-    LEFT JOIN baz ON f.a = baz.a;
+        foo.a AS a,
+        foo.c AS c
+    FROM
+        foo AS foo
+    WHERE
+        foo.a = 1
+)
+SELECT
+    f.a AS a,
+    b.b AS b,
+    baz.c AS c,
+    CAST(b.a AS float) AS d
+FROM
+    foo AS f
+    JOIN bar AS b ON b.a = f.a
+    LEFT JOIN baz AS baz ON baz.a = f.a

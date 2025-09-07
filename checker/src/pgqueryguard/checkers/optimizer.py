@@ -7,5 +7,9 @@ def optimize_query(sql: str, schema: dict[str, dict[str, str]]) -> str:
         sqlglot.parse_one(sql),
         schema=schema,
         validate_qualify_columns=False,
-        dialect="postgres",
-    ).sql(dialect="postgres", pretty=True)
+        identify=False,
+        normalize=False,
+        normalize_functions=False,
+        leading_comma=False,
+        comments=True,
+    ).sql()

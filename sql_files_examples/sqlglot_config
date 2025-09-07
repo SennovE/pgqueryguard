@@ -1,0 +1,8 @@
+identify = true
+normalize = true
+normalize_functions = true
+leading_comma = true
+comments = true
+pad = 5
+indent = 10
+max_text_width = 20
