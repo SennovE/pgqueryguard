@@ -79,8 +79,8 @@ async def check(
             print_validation_errors(errors, file)
             error_files += 1
             continue
-        engine = create_engine(str(db_url))
         if db_url:
+            engine = create_engine(str(db_url))
             scheme = get_column_types_from_sql(engine, query)
             query = optimize_query(query, scheme)
         if pg_format_file:
