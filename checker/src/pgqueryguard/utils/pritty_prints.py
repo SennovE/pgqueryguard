@@ -1,20 +1,21 @@
 from pathlib import Path
 
-from rich import print
-from rich.syntax import Syntax
+from rich.console import Console
+
+console = Console(force_terminal=True)
 
 
 def print_validation_errors(errors: list, file: Path):
-    print(f"===[red] {file} [/red]===")
+    console.print(f"===[red] {file} [/red]===")
     for error in errors:
-        print(
+        console.print(
             f"{error['description']}.",
             "On Line:",
             f"{error['line']},",
             "Column:",
             error["col"],
         )
-        print(
+        console.print(
             (
                 f"[white]{error['start_context']}[/white]"
                 f"[red]{error['highlight']}[/red]"
@@ -23,17 +24,12 @@ def print_validation_errors(errors: list, file: Path):
         )
 
 
-def print_sql(sql: str):
-    syntax = Syntax(sql, "sql", theme="monokai", word_wrap=True)
-    print(syntax)
-
-
 def print_total_format_files(formatted: int, errors: int):
     if formatted == 1:
-        print(f"=== [green]{formatted}[/green] file was formatted ===")
+        console.print(f"=== [green]{formatted}[/green] file was formatted ===")
     else:
-        print(f"=== [green]{formatted}[/green] files were formatted ===")
+        console.print(f"=== [green]{formatted}[/green] files were formatted ===")
     if errors == 1:
-        print(f"=== [red]{errors}[/red] file has error ===")
+        console.print(f"=== [red]{errors}[/red] file has error ===")
     elif formatted > 1:
-        print(f"=== [red]{errors}[/red] files have error ===")
+        console.print(f"=== [red]{errors}[/red] files have error ===")
