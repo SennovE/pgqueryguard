@@ -1,0 +1,35 @@
+- id: pgqueryguard-check
+  name: pgqueryguard (check)
+  description: Validate SQL in *.sql, *.psql, *.pgsql
+  entry: pgqueryguard
+  language: python
+  pass_filenames: false
+  args: [check, .]
+  types: [file]
+  files: \.(sql|psql|pgsql)$
+  additional_dependencies:
+    - "pgqueryguard @ git+ssh://github.com/SennovE/pgqueryguard.git@6883b30#subdirectory=checker"
+
+- id: pgqueryguard-fix
+  name: pgqueryguard (fix)
+  description: Format SQL (pg_format or built-in)
+  entry: pgqueryguard
+  language: python
+  pass_filenames: false
+  args: [check, ., --fix]
+  types: [file]
+  files: \.(sql|psql|pgsql)$
+  additional_dependencies:
+    - "pgqueryguard @ git+ssh://github.com/SennovE/pgqueryguard.git@6883b30#subdirectory=checker"
+
+- id: pgqueryguard-report
+  name: pgqueryguard (report)
+  description: Generate HTML report via EXPLAIN and suggestions
+  entry: pgqueryguard
+  language: python
+  pass_filenames: false
+  args: [report, .]
+  types: [file]
+  files: \.(sql|psql|pgsql)$
+  additional_dependencies:
+    - "pgqueryguard @ git+ssh://github.com/SennovE/pgqueryguard.git@6883b30#subdirectory=checker"

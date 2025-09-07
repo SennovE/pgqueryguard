@@ -1,7 +1,6 @@
 [project]
 name = "pgqueryguard"
 version = "0.1.0"
-description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -15,6 +14,12 @@ dependencies = [
 
 [project.scripts]
 pgqueryguard = "pgqueryguard.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "checker"}
+
+[tool.setuptools.packages.find]
+where = ["checker"]
 
 [build-system]
 requires = ["uv_build>=0.8.15,<0.9.0"]
