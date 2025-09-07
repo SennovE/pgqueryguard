@@ -2,10 +2,13 @@ from pathlib import Path
 import aiofiles
 
 
+def bool_(x: str) -> bool:
+    return x == "true"
+
+
 async def parse_opts_for_sqlglot(filename: Path):
     async with aiofiles.open(filename) as f:
         lines = await f.readlines()
-        bool_ = lambda x: x == "true"
         default_types = {
             "identify": bool_,
             "normalize": bool_,
@@ -18,7 +21,7 @@ async def parse_opts_for_sqlglot(filename: Path):
         }
         opts = {}
         for line in lines:
-            name, value = line.strip().replace(' ', '').lower().split('=')
+            name, value = line.strip().replace(" ", "").lower().split("=")
             if name in default_types:
                 opts[name] = default_types[name](value)
     return opts

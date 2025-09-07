@@ -27,9 +27,9 @@ def format_with_sqlglot(query: str, opts: dict):
         if key in default_opts:
             default_opts[key] = value
 
-    formatted = sqlglot.transpile(
-        query, write="postgres", pretty=True, **default_opts
-    )[0]
+    formatted = sqlglot.transpile(query, write="postgres", pretty=True, **default_opts)[
+        0
+    ]
     return formatted
 
 

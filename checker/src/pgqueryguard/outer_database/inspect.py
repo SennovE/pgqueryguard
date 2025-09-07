@@ -1,25 +1,47 @@
+from typing import Any
 import sqlglot
 from sqlglot import exp
-from sqlalchemy import create_engine, text
+from sqlalchemy import Engine, text
 
 
-def get_column_types_from_sql(sql_query: str, db_url: str) -> dict[str, dict[str, str]]:
+def run_explain(engine: Engine, sql: str) -> dict[str, Any]:
+    explain_sql = f"EXPLAIN (FORMAT JSON, COSTS true) {sql}"
+    with engine.begin() as conn:
+        conn.exec_driver_sql("SET default_transaction_read_only = on")
+        res = conn.execute(text(explain_sql)).scalars().first()
+    return res[0]
+
+
+def read_table_stats(engine: Engine) -> dict[str, dict[str, Any]]:
+    sql = """
+    SELECT c.relname, c.relpages, c.reltuples
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE c.relkind='r' AND n.nspname NOT IN ('pg_catalog','information_schema');
+    """
+    with engine.begin() as conn:
+        rows = conn.execute(text(sql)).mappings().all()
+    return {r["relname"]: dict(r) for r in rows}
+
+
+def get_column_types_from_sql(
+    engine: Engine, sql_query: str
+) -> dict[str, dict[str, str]]:
     needed_by_table = _extract_needed_tables_and_columns(sql_query)
     if not needed_by_table:
         return {}
 
-    engine = create_engine(db_url, future=True)
     schema_map: dict[str, dict[str, str]] = {}
 
     meta_query = text("""
         SELECT
-            n.nspname AS schema_name,
-            c.relname AS table_name,
-            a.attname AS column_name,
-            pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type
-        FROM pg_catalog.pg_attribute AS a
-        JOIN pg_catalog.pg_class     AS c ON c.oid = a.attrelid
-        JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
+              n.nspname AS schema_name,
+              c.relname AS table_name,
+              a.attname AS column_name,
+              pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type
+         FROM pg_catalog.pg_attribute AS a
+         JOIN pg_catalog.pg_class     AS c ON c.oid = a.attrelid
+         JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
         WHERE a.attnum > 0
           AND NOT a.attisdropped
           AND c.relkind IN ('r','p','v','m','f')
