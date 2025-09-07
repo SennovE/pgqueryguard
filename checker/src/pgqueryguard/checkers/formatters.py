@@ -1,10 +1,10 @@
-from logging import getLogger
 import asyncio
 import os
-import sys
 import shutil
-from pathlib import Path
+import sys
 from asyncio.subprocess import PIPE
+from logging import getLogger
+from pathlib import Path
 
 import sqlglot
 

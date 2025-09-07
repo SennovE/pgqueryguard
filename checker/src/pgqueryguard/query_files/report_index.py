@@ -1,7 +1,7 @@
-from dataclasses import dataclass, asdict
+import html
 import json
 import os
-import html
+from dataclasses import asdict, dataclass
 
 
 @dataclass

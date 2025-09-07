@@ -1,7 +1,8 @@
 from typing import Any
+
 import sqlglot
-from sqlglot import exp
 from sqlalchemy import Engine, text
+from sqlglot import exp
 
 
 def run_explain(engine: Engine, sql: str) -> dict[str, Any]:

@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from rich import print
 from rich.syntax import Syntax
 

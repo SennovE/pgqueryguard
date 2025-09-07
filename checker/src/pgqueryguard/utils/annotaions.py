@@ -1,9 +1,7 @@
-from typing_extensions import Annotated
-
 from pathlib import Path
 
 import typer
-
+from typing_extensions import Annotated
 
 PathArgument = Annotated[Path, typer.Argument(exists=True, readable=True)]
 RecursiveOption = Annotated[

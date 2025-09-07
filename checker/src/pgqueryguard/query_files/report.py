@@ -1,8 +1,8 @@
 import html
 import json
 import textwrap
-from typing import Any
 from datetime import datetime
+from typing import Any
 
 from pgqueryguard.outer_database.advice import Advice
 from pgqueryguard.outer_database.count_resourses import CostProfile

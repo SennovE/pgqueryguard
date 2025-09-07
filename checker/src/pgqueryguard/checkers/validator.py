@@ -1,7 +1,7 @@
-from typing import Any
-import sqlglot
-
 from logging import getLogger
+from typing import Any
+
+import sqlglot
 
 logger = getLogger(__name__)
 
