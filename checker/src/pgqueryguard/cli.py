@@ -159,6 +159,7 @@ async def report(
             )
 
     write_index_page("pgqueryguard_reports", items_for_index)
+    print(f"=== Report: ./pgqueryguard_reports/index.html ===")
 
 
 def main():
