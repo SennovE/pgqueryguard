@@ -23,4 +23,4 @@ pgqueryguard = "pgqueryguard.cli:main"
 package-dir = {"" = "checker/src"}
 
 [tool.setuptools.packages.find]
-where = ["checker"]
+where = ["checker/src"]
