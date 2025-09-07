@@ -29,9 +29,9 @@ def risk_from_profile(p: CostProfile) -> tuple[str, str]:
     high = (p.est_pages >= 500_000) or (p.est_memory_bytes >= 1_000_000_000)
     med = (p.est_pages >= 100_000) or (p.est_memory_bytes >= 256_000_000)
     if high:
-        return "HIGH",  "Оценка высокая: много страниц или память > ~1 ГБ"
+        return "HIGH", "Оценка высокая: много страниц или память > ~1 ГБ"
     if med:
-        return "MED",   "Оценка средняя: заметный объём данных/памяти"
+        return "MED", "Оценка средняя: заметный объём данных/памяти"
     return "LOW", "Оценка низкая: прогноз умеренный"
 
 

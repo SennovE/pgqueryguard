@@ -1,5 +1,8 @@
 from dataclasses import dataclass, asdict
-import json, os, html
+import json
+import os
+import html
+
 
 @dataclass
 class IndexItem:
@@ -13,6 +16,7 @@ class IndexItem:
     warnings: int
     excerpt: str
     error: str | None = None
+
 
 def write_index_page(
     output_dir: str,
@@ -49,7 +53,8 @@ select{max-width:140px}
 a.rowlink{color:inherit;text-decoration:none}
     """
 
-    js = """
+    js = (
+        """
 const DATA = %s;
 let sortKey = "title", sortDir = 1;
 function riskClass(r){return r==="HIGH"?"high":r==="MED"?"med":r==="LOW"?"low":"err"}
@@ -84,7 +89,9 @@ function render(){
     </tr>`).join("");
 }
 window.addEventListener("DOMContentLoaded", render);
-""" % data_js
+"""
+        % data_js
+    )
 
     html_doc = f"""<!doctype html>
 <meta charset="utf-8"><title>{html.escape(title)}</title>
@@ -125,5 +132,7 @@ window.addEventListener("DOMContentLoaded", render);
         f.write(html_doc)
 
     if manifest:
-        with open(os.path.join(output_dir, "manifest.json"), "w", encoding="utf-8") as f:
+        with open(
+            os.path.join(output_dir, "manifest.json"), "w", encoding="utf-8"
+        ) as f:
             json.dump([asdict(i) for i in items], f, ensure_ascii=False, indent=2)
