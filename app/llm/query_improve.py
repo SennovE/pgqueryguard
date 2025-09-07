@@ -8,9 +8,9 @@ from sqlalchemy import Engine
 import sys
 
 
-from pgqueryguard.outer_database.count_resourses import CostProfile, estimate_profile
-from pgqueryguard.outer_database.inspect import run_explain
-from pgqueryguard.llm.api_utils import (
+from checker.src.pgqueryguard.outer_database.count_resourses import CostProfile, estimate_profile
+from checker.src.pgqueryguard.outer_database.inspect import run_explain
+from app.llm.api_utils import (
     get_api_key, 
     get_api_url,
     _safe_ratio,
@@ -56,6 +56,7 @@ async def improve_sql(
         "Given a SQL query, produce N improved alternatives while preserving the original result semantics by default. "
         "Prefer standard SQL; if dialect-specific, call it out explicitly. "
         "Focus on correctness, then performance and readability. "
+        "Пиши на русском языке."
         "Return ONLY valid JSON."
     )
 

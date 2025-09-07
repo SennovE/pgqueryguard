@@ -172,11 +172,93 @@ def advice_section(advice: list[Advice]) -> str:
     return '<div class="cards">' + "".join(cards) + "</div>"
 
 
+def ai_advice_section(ai_advice: list[dict] | None) -> str:
+    if not ai_advice:
+        return "<div class='muted'>Нет AI-вариантов, прошедших фильтр по EXPLAIN.</div>"
+
+    def fmt_pct_signed(v):
+        try:
+            return f"{-float(v):+.1f}%"
+        except Exception:
+            return "—"
+
+    def warn_delta_and_class(v):
+        """Вернёт ('+3', 'low') / ('-1', 'high') / ('0', '') / ('—','')"""
+        try:
+            iv = int(v)
+        except Exception:
+            return "—", ""
+        cls = "low" if iv > 0 else ("high" if iv < 0 else "")
+        return f"{iv:+d}", cls
+
+    cards = []
+    for i, cand in enumerate(ai_advice, 1):
+        sql = (cand.get("sql") or "").strip()
+        explanation = cand.get("explanation") or ""
+        changes = cand.get("changes") or []
+        tags = cand.get("tags") or []
+
+        c_cost = cand.get("c_cost")
+        c_pages = cand.get("c_pages")
+        c_mem = cand.get("c_mem")
+        c_rows = cand.get("c_rows")
+        c_warnings = cand.get("c_warnings")
+
+        imp = cand.get("improvement") or {}
+        cost_pct   = imp.get("cost_pct")
+        pages_pct  = imp.get("pages_pct")
+        memory_pct = imp.get("memory_pct")
+        rows_pct   = imp.get("rows_pct")
+        warn_diff  = imp.get("warnings_diff", 0)
+        score      = imp.get("weighted_geom_ratio")
+
+        # теги
+        tags_html = "".join(f"<span class='badge'>{_escape(str(t))}</span>" for t in tags)
+
+        # дельта предупреждений — ЧЁТКО отдельным шагом
+        warn_delta_str, warn_cls = warn_delta_and_class(warn_diff)
+
+        chips = f"""
+        <div class="chips">
+          <span class="badge">Cost: {fmt_float(c_cost)} ({fmt_pct_signed(cost_pct)})</span>
+          <span class="badge">Pages: {fmt_num(c_pages)} ({fmt_pct_signed(pages_pct)})</span>
+          <span class="badge">Memory: {fmt_bytes(c_mem)} ({fmt_pct_signed(memory_pct)})</span>
+          <span class="badge">Rows: {fmt_num(c_rows)} ({fmt_pct_signed(rows_pct)})</span>
+          <span class="badge {warn_cls}">Warnings Δ {warn_delta_str}</span>
+          <span class="badge">Score: {fmt_float(score)}</span>
+        </div>
+        """
+
+        changes_html = ""
+        if changes:
+            items = "".join(f"<li>{_escape(str(it))}</li>" for it in changes)
+            changes_html = f"<div class='ddl-head'>Изменения</div><ul class='warn-list'>{items}</ul>"
+
+        card = f"""
+        <div class="card">
+          <div class="card-top">
+            <div><b>Вариант {i}</b></div>
+            <div class="chips">{tags_html}</div>
+          </div>
+          <div class="msg">{_escape(explanation)}</div>
+          {chips}
+          <div class="ddl-head">SQL (улучшенный)</div>
+          <pre class="sql"><code>{_escape(sql)}</code></pre>
+          <button class="copy" onclick="copyDDL(this)">Копировать</button>
+          {changes_html}
+        </div>
+        """
+        cards.append(card)
+
+    return f"<div class='cards'>{''.join(cards)}</div>"
+
+
 def write_html_report(
     filepath: str,
     plan_json: dict[str, Any],
     profile: CostProfile,
     advice: list[Advice],
+    ai_advice,
     sql_text: str | None = None,
     db_dsn_label: str | None = None,
 ) -> None:
@@ -194,6 +276,14 @@ def write_html_report(
     nodes_table = plan_nodes_table(plan_json)
     advice_html = advice_section(advice)
     plan_raw_json = html.escape(json.dumps(plan_json, ensure_ascii=False, indent=2))
+
+    ai_html = ai_advice_section(ai_advice) if ai_advice else ""
+    ai_section = f"""
+    <div class="section">
+      <h3>AI рекомендации</h3>
+      {ai_html}
+    </div>
+    """ if ai_html else ""
 
     css = """
 :root {
@@ -295,6 +385,8 @@ function copyDDL(btn){
       </div>
       {"<div class='section warn'><div class='title'>Предупреждения</div>" + warnings_html + "</div>" if profile.warnings else ""}
     </div>
+
+    {ai_section}
 
     <div class="section">
       <h3>Дерево плана (EXPLAIN JSON)</h3>
