@@ -1,16 +1,15 @@
 import sqlglot
 from sqlglot import exp
 from sqlalchemy import create_engine, text
-from typing import Dict, Set
 
 
-def get_column_types_from_sql(sql_query: str, db_url: str) -> Dict[str, Dict[str, str]]:
+def get_column_types_from_sql(sql_query: str, db_url: str) -> dict[str, dict[str, str]]:
     needed_by_table = _extract_needed_tables_and_columns(sql_query)
     if not needed_by_table:
         return {}
 
     engine = create_engine(db_url, future=True)
-    schema_map: Dict[str, Dict[str, str]] = {}
+    schema_map: dict[str, dict[str, str]] = {}
 
     meta_query = text("""
         SELECT
@@ -51,7 +50,7 @@ def get_column_types_from_sql(sql_query: str, db_url: str) -> Dict[str, Dict[str
 
             actual_schema = rows[0]["schema_name"]
             qualified_key = f"{actual_schema}.{table_name}"
-            table_columns: Dict[str, str] = {}
+            table_columns: dict[str, str] = {}
 
             for row in rows:
                 col = row["column_name"]
@@ -70,11 +69,11 @@ def get_column_types_from_sql(sql_query: str, db_url: str) -> Dict[str, Dict[str
     return schema_map
 
 
-def _extract_needed_tables_and_columns(sql_query: str) -> Dict[str, Set[str]]:
+def _extract_needed_tables_and_columns(sql_query: str) -> dict[str, set[str]]:
     expr = sqlglot.parse_one(sql_query, read="postgres")
 
-    alias_to_table: Dict[str, str] = {}
-    tables: Set[str] = set()
+    alias_to_table: dict[str, str] = {}
+    tables: set[str] = set()
 
     def ident(i: exp.Identifier | None) -> str | None:
         return i.name if isinstance(i, exp.Identifier) else None
@@ -87,7 +86,7 @@ def _extract_needed_tables_and_columns(sql_query: str) -> Dict[str, Set[str]]:
             if a:
                 alias_to_table[a] = fq
 
-    needed: Dict[str, Set[str]] = {t: set() for t in tables}
+    needed: dict[str, set[str]] = {t: set() for t in tables}
 
     for c in expr.find_all(exp.Column):
         col = ident(c.this)

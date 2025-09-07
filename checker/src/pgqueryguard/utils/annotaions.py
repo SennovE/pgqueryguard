@@ -23,13 +23,14 @@ PgFormatFileOption = Annotated[
         help="Path to pg_format executable file",
     ),
 ]
-PgFormatConfigOption = Annotated[
+FormatConfigOption = Annotated[
     Path | None,
     typer.Option(
-        "--pg-format-config",
+        "--config",
+        "-c",
         exists=True,
         readable=True,
-        help="Path to pg_format configuration file",
+        help="Path to format configuration file",
     ),
 ]
 FixOption = Annotated[
@@ -40,7 +41,7 @@ FixOption = Annotated[
     ),
 ]
 DBUrlOption = Annotated[
-    str,
+    str | None,
     typer.Option(
         "--db-url",
         help="Url for database connection",
