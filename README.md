@@ -11,7 +11,7 @@
 ```
 repos:
   - repo: https://github.com/SennovE/pgqueryguard
-    rev: d4b2c14
+    rev: 1e02bcb  # хэш коммита в данном репозитории
     hooks:
       - id: pgqueryguard-check  # Проверка sql
       - id: pgqueryguard-fix  # Форматирование

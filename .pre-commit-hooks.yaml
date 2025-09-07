@@ -7,6 +7,10 @@
   args: [check, .]
   types: [file]
   files: \.(sql|psql|pgsql)$
+  env:
+    RICH_FORCE_TERMINAL: "1"
+    FORCE_COLOR: "1"
+    TERM: "xterm-256color"
 
 - id: pgqueryguard-fix
   name: pgqueryguard (fix)
@@ -17,6 +21,10 @@
   args: [check, ., --fix]
   types: [file]
   files: \.(sql|psql|pgsql)$
+  env:
+    RICH_FORCE_TERMINAL: "1"
+    FORCE_COLOR: "1"
+    TERM: "xterm-256color"
 
 - id: pgqueryguard-report
   name: pgqueryguard (report)
@@ -27,3 +35,7 @@
   args: [report, .]
   types: [file]
   files: \.(sql|psql|pgsql)$
+  env:
+    RICH_FORCE_TERMINAL: "1"
+    FORCE_COLOR: "1"
+    TERM: "xterm-256color"
