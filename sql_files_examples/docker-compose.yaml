@@ -1,15 +1,41 @@
 services:
   db:
     image: postgres:16
-    restart: always
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
-      POSTGRES_DB: db
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: appdb
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports:
+      - "5432:5432"
+
+  backend:
+    image: python:3.12-slim
+    working_dir: /checker
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGPORT: "5432"
+      PGDATABASE: appdb
+      PGUSER: appuser
+      PGPASSWORD: secret
+    volumes:
+      - ../checker:/checker      
+    command: >
+      bash -lc "
+        apt-get update &&
+        apt-get install -y gcc libpq-dev &&
+        pip install --no-cache-dir uv psycopg2-binary &&
+        sleep infinity
+      "
 
 volumes:
   pgdata:
