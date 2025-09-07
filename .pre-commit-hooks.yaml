@@ -8,7 +8,7 @@
   types: [file]
   files: \.(sql|psql|pgsql)$
   additional_dependencies:
-    - "pgqueryguard @ git+ssh://github.com/SennovE/pgqueryguard.git@6883b30#subdirectory=checker"
+    - "pgqueryguard @ git+ssh://git@github.com/SennovE/pgqueryguard.git@6883b30#subdirectory=checker"
 
 - id: pgqueryguard-fix
   name: pgqueryguard (fix)
@@ -20,7 +20,7 @@
   types: [file]
   files: \.(sql|psql|pgsql)$
   additional_dependencies:
-    - "pgqueryguard @ git+ssh://github.com/SennovE/pgqueryguard.git@6883b30#subdirectory=checker"
+    - "pgqueryguard @ git+ssh://git@github.com/SennovE/pgqueryguard.git@6883b30#subdirectory=checker"
 
 - id: pgqueryguard-report
   name: pgqueryguard (report)
@@ -32,4 +32,4 @@
   types: [file]
   files: \.(sql|psql|pgsql)$
   additional_dependencies:
-    - "pgqueryguard @ git+ssh://github.com/SennovE/pgqueryguard.git@6883b30#subdirectory=checker"
+    - "pgqueryguard @ git+ssh://git@github.com/SennovE/pgqueryguard.git@6883b30#subdirectory=checker"
