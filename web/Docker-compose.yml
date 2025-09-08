@@ -1,0 +1,13 @@
+services:
+  backend:
+    container_name: ${BACKEND_HOST}
+    hostname: ${BACKEND_HOST}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - '8080:8080'
+    env_file:
+      - ./.env
+    volumes:
+      - ./backend/app:/backend/app
