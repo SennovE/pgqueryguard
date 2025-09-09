@@ -4,6 +4,10 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 
+# ➜ добавили libpq5 (даёт libpq.so), можно без компилятора
+RUN apt-get update && apt-get install -y --no-install-recommends libpq5 \
+ && rm -rf /var/lib/apt/lists/*
+
 RUN pip install --no-cache-dir uv tomli-w
 WORKDIR /app
 
@@ -23,5 +27,12 @@ sources["pgqueryguard"] = {"path": "vendor/pgqueryguard", "editable": True}
 p.write_text(tomli_w.dumps(data), encoding="utf-8")
 PY
 
-RUN rm -f uv.lock && uv lock && uv sync --no-dev
+# lock можно оставить как есть; если нужно — пересчитать под локальный источник
+RUN uv lock --upgrade-package pgqueryguard
+
+RUN uv sync --no-dev --frozen
 RUN uv pip install --no-deps -e .
+
+# (опционально) лёгкая проверка без импорта psycopg_binary:
+# RUN python -c "import psycopg, psycopg.pq as pq; print('psycopg', psycopg.__version__)"
+CMD ["uv", "run", "python", "-m", "app.main"]
