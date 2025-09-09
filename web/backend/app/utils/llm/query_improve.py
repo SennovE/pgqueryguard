@@ -8,9 +8,9 @@ from sqlalchemy import Engine
 import sys
 
 
-from checker.src.pgqueryguard.outer_database.count_resourses import CostProfile, estimate_profile
-from checker.src.pgqueryguard.outer_database.inspect import run_explain
-from app.llm.api_utils import (
+from pgqueryguard.outer_database.count_resourses import CostProfile, estimate_profile
+from pgqueryguard.outer_database.inspect import run_explain
+from app.utils.llm.api_utils import (
     get_api_key, 
     get_api_url,
     _safe_ratio,

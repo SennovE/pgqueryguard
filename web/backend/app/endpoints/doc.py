@@ -5,9 +5,9 @@ from fastapi import APIRouter, HTTPException, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from sqlalchemy import create_engine
 
-from app.ulits.checker.src.pgqueryguard.outer_database.inspect import run_explain
-from app.ulits.checker.src.pgqueryguard.outer_database.count_resourses import estimate_profile
-from app.ulits.llm.query_improve import improve_and_filter_sql
+from pgqueryguard.outer_database.inspect import run_explain
+from pgqueryguard.outer_database.count_resourses import estimate_profile
+from app.utils.llm.query_improve import improve_and_filter_sql
 
 import io
 import re

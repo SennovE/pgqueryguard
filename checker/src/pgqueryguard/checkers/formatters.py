@@ -64,7 +64,7 @@ async def format_with_pg_formatter(
             f"pg_format finished with code {proc.returncode}: {stderr.decode(errors='replace')}"
         )
 
-    return stdout.decode("utf-8").removesuffix("\r\n")
+    return stdout.decode("utf-8").replace("\r", "")
 
 
 def _pg_format_argv(pg_format_bin: Path | None, opts: list[str]) -> list[str]:

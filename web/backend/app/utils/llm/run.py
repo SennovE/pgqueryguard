@@ -2,9 +2,9 @@ import asyncio
 from sqlalchemy import create_engine
 
 
-from app.llm.query_improve import improve_and_filter_sql
-from checker.src.pgqueryguard.outer_database.count_resourses import CostProfile, estimate_profile
-from checker.src.pgqueryguard.outer_database.inspect import run_explain
+from  app.utils.llm.query_improve import improve_and_filter_sql
+from pgqueryguard.outer_database.count_resourses import CostProfile, estimate_profile
+from pgqueryguard.outer_database.inspect import run_explain
 
 
 if __name__ == "__main__":

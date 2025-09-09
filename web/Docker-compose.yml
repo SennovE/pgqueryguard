@@ -3,15 +3,15 @@ services:
     container_name: backend
     hostname: backend
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: ./web/backend/Dockerfile
     ports:
       - "8080:8080"
     env_file:
       - ./.env
     volumes:
-      - ./backend:/app
+      - ./backend/app:/app/app            # hot-reload your code
     command: >
-      uv run uvicorn app.main:app
+      uvicorn app.main:app
       --host 0.0.0.0 --port 8080
-      --reload --reload-dir app
+      --reload --reload-dir /app/app
