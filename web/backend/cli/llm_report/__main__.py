@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-from typing_extensions import Annotated
 
 import sqlparse
 from sqlalchemy import create_engine
@@ -32,13 +31,7 @@ app = typer.Typer()
 @async_command
 async def report(
     directory: PathArgument,
-    db_url: Annotated[
-        str,
-        typer.Option(
-            "--db-url",
-            help="Url for database connection",
-        ),
-    ],
+    db_url: DBUrlOption,
 ):
     files = get_sql_files(directory, True)
     error_files = 0
