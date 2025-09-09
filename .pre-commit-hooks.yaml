@@ -1,29 +1,17 @@
 - id: pgqueryguard-check
   name: pgqueryguard (check)
   description: Validate SQL in *.sql, *.psql, *.pgsql
-  entry: pgqueryguard
+  entry: pgqueryguard check .
   language: python
   pass_filenames: false
-  args: [check, .]
-  types: [file]
-  files: \.(sql|psql|pgsql)$
-
-- id: pgqueryguard-fix
-  name: pgqueryguard (fix)
-  description: Format SQL
-  entry: pgqueryguard
-  language: python
-  pass_filenames: false
-  args: [check, ., --fix]
   types: [file]
   files: \.(sql|psql|pgsql)$
 
 - id: pgqueryguard-report
   name: pgqueryguard (report)
   description: Generate HTML report via EXPLAIN
-  entry: pgqueryguard
+  entry: pgqueryguard report .
   language: python
   pass_filenames: false
-  args: [report, .]
   types: [file]
   files: \.(sql|psql|pgsql)$
