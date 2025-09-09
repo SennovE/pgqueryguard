@@ -5,7 +5,8 @@ import aiofiles
 
 async def read_file(filename: Path) -> str:
     async with aiofiles.open(filename, encoding="utf-8", newline="\n") as file:
-        return await file.read()
+        data = await file.read()
+        return data.replace("\r", "")
 
 
 async def write_file(filename: Path, query: str):

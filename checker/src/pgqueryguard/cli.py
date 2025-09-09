@@ -37,7 +37,6 @@ from pgqueryguard.utils.pritty_prints import (
     print_total_format_files,
     print_validation_errors,
 )
-from app.llm.query_improve import improve_and_filter_sql
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
@@ -134,8 +133,7 @@ async def report(
             plan = run_explain(engine, query)
             profile = estimate_profile(plan)
             adv = advise_from_plan(plan, read_table_stats(engine))
-            ai_adv = await improve_and_filter_sql(engine, query, profile=profile, n_variants=5)
-            write_html_report(out_html, plan, profile, adv, ai_adv)
+            write_html_report(out_html, plan, profile, adv, query)
 
             sql_text_for_excerpt = query.strip().replace("\n", " ")
             items_for_index.append(
