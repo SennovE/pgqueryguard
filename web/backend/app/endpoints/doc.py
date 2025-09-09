@@ -303,7 +303,63 @@ def build_html_report(
     ai_html = ai_advice_section(ai_advice) if ai_advice else ""
     ai_section = f"<div class='section'><h3>AI рекомендации</h3>{ai_html}</div>" if ai_html else ""
 
-    css = """/* (тот же CSS, что и раньше) */"""  # ← оставьте ваш CSS из предыдущей версии
+    css = """
+:root {
+  --bg: #0b1020; --fg: #E7ECF4; --muted:#9AA6B2; --card:#121a33; --acc:#7C9BFF;
+  --ok:#3fb950; --med:#f2cc60; --high:#ff6b6b; --chip:#1b2447; --border:#22305b;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg:#f7f9fc; --fg:#0c1220; --muted:#697586; --card:#ffffff; --acc:#3558ff;
+    --ok:#0f9150; --med:#b88700; --high:#d63939; --chip:#eef2ff; --border:#e5e9f2;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
+  font:15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial}
+.container{max-width:1200px;margin:0 auto;padding:24px}
+.header{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-bottom:16px}
+.h-title{font-size:22px;font-weight:700}
+.h-sub{color:var(--muted)}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:var(--chip);
+  border:1px solid var(--border);font-weight:600;font-size:12px}
+.badge.low{background:rgba(63,185,80,.12);color:var(--ok);border-color:rgba(63,185,80,.3)}
+.badge.med{background:rgba(242,204,96,.12);color:var(--med);border-color:rgba(242,204,96,.35)}
+.badge.high{background:rgba(255,107,107,.12);color:var(--high);border-color:rgba(255,107,107,.35)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin:16px 0}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi{background:var(--chip);border:1px solid var(--border);border-radius:12px;padding:12px}
+.kpi .label{color:var(--muted);font-size:12px}
+.kpi .value{font-size:18px;font-weight:700;margin-top:4px}
+.warn{background:rgba(255,107,107,.08);border-color:rgba(255,107,107,.35)}
+.warn .title{color:var(--high);font-weight:700;margin-bottom:6px}
+.warn-list{margin:8px 0 0 18px}
+.sql, pre code{white-space:pre-wrap;word-break:break-word}
+pre{background:#0a0f1f1a;border:1px solid var(--border);border-radius:12px;padding:12px;overflow:auto}
+.tree{list-style:none;padding-left:18px;margin:0}
+.tree.root{padding-left:0}
+.node summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;gap:4px;padding:8px;border-radius:10px}
+.node summary:hover{background:rgba(124,155,255,.08)}
+.node-title{font-weight:700}
+.node-meta, .node-costs, .node-keys{color:var(--muted);font-size:12px}
+.filter{margin:8px 0;color:var(--muted)}
+.nodes{width:100%;border-collapse:collapse}
+.nodes th, .nodes td{border-bottom:1px solid var(--border);padding:8px 10px}
+.nodes td.num{text-align:right}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px}
+.card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.msg{margin:6px 0 10px}
+.ddl-head{font-size:12px;color:var(--muted);margin-bottom:4px}
+.copy{display:inline-block;border:1px solid var(--border);background:var(--chip);color:var(--fg);
+  border-radius:8px;padding:6px 10px;cursor:pointer}
+.copy:active{transform:translateY(1px)}
+.muted{color:var(--muted)}
+.footer{color:var(--muted);font-size:12px;margin-top:8px;display:flex;gap:16px;flex-wrap:wrap}
+.kv b{color:var(--muted);font-weight:600}
+"""
+
     js = """
 function copyDDL(btn){
   const code = btn.previousElementSibling?.querySelector('code');
