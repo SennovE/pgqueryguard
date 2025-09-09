@@ -37,28 +37,32 @@ def _read_sql_bytes(data: bytes, size_limit: int = 1_000_000) -> str:
             return part
     return ""
 
-# ----------------------------- DSN utilities ---------------------------------
-_ALLOWED_SCHEMES = {"postgresql", "postgres", "postgresql+psycopg"}  # psycopg3
+# добавим поддержку старого префикса и перепишем его
+_ALLOWED_SCHEMES = {
+    "postgresql", "postgres",
+    "postgresql+psycopg",     # psycopg3
+    "postgresql+psycopg2",    # допустим ввод и перепишем
+}
 
 def _normalize_dsn(raw: str) -> str:
-    """
-    Accepts postgres/postgresql/postgresql+psycopg and forces psycopg3 dialect.
-    Raises HTTP 400 on unsupported scheme or missing host/db.
-    """
     if not raw:
         raise HTTPException(status_code=400, detail="DSN пустой")
 
     parsed = urlparse(raw)
-    if parsed.scheme not in _ALLOWED_SCHEMES:
+
+    # допускаем psycopg2 и сразу переписываем на psycopg3
+    scheme = parsed.scheme
+    if scheme not in _ALLOWED_SCHEMES:
         raise HTTPException(status_code=400, detail="Поддерживаются только DSN c postgres/postgresql схемой")
 
     if not parsed.hostname or not parsed.path or parsed.path in ("/", ""):
-        raise HTTPException(status_code=400, detail="В DSN должен быть host и имя базы (например: postgresql://user:pass@host:5432/db)")
+        raise HTTPException(status_code=400, detail="В DSN должен быть host и имя базы")
 
-    # Превращаем в psycopg3-драйвер
-    scheme = "postgresql+psycopg"
-    normalized = urlunparse(parsed._replace(scheme=scheme))
-    return normalized
+    if scheme in {"postgres", "postgresql", "postgresql+psycopg2"}:
+        scheme = "postgresql+psycopg"
+
+    return urlunparse(parsed._replace(scheme=scheme))
+
 
 def _dsn_label(dsn: str) -> str:
     """
