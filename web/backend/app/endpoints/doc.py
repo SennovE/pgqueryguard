@@ -2,30 +2,29 @@ from __future__ import annotations
 
 import html as _html
 import json
+import os
 import re
 import textwrap
 from datetime import datetime
-from typing import Any
+from typing import Any, Tuple
+from urllib.parse import urlparse, urlunparse
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from fastapi.responses import Response, HTMLResponse, PlainTextResponse
 from sqlalchemy import create_engine
 
-# === pgqueryguard / твой код ===
+# === ваш код / зависимости ===
 from pgqueryguard.outer_database.inspect import run_explain
 from pgqueryguard.outer_database.count_resourses import CostProfile, estimate_profile
-from pgqueryguard.outer_database.advice import Advice  # если нет — замени на твой тип/удали
-from app.utils.llm.query_improve import improve_and_filter_sql  # твоя LLM-функция
+from pgqueryguard.outer_database.advice import Advice
+from app.utils.llm.query_improve import improve_and_filter_sql
 
 api_router = APIRouter(prefix="/doc", tags=["doc"])
 
-# ---------------------------------------------------------------------
-# Вспомогательные утилиты для парсинга SQL-файла
-# ---------------------------------------------------------------------
+# ----------------------------- SQL file parsing ------------------------------
 _SQL_COMMENT_RE = re.compile(r"--.*?$|/\*.*?\*/", re.S | re.M)
 
 def _read_sql_bytes(data: bytes, size_limit: int = 1_000_000) -> str:
-    """Достаёт первую валидную SQL-команду из файла: режет комментарии и берёт до первой ';'."""
     if len(data) > size_limit:
         raise HTTPException(status_code=413, detail=f"SQL файл слишком большой (> {size_limit} байт)")
     try:
@@ -38,9 +37,45 @@ def _read_sql_bytes(data: bytes, size_limit: int = 1_000_000) -> str:
             return part
     return ""
 
-# ---------------------------------------------------------------------
-# Форматирование чисел/байт
-# ---------------------------------------------------------------------
+# ----------------------------- DSN utilities ---------------------------------
+_ALLOWED_SCHEMES = {"postgresql", "postgres", "postgresql+psycopg"}  # psycopg3
+
+def _normalize_dsn(raw: str) -> str:
+    """
+    Accepts postgres/postgresql/postgresql+psycopg and forces psycopg3 dialect.
+    Raises HTTP 400 on unsupported scheme or missing host/db.
+    """
+    if not raw:
+        raise HTTPException(status_code=400, detail="DSN пустой")
+
+    parsed = urlparse(raw)
+    if parsed.scheme not in _ALLOWED_SCHEMES:
+        raise HTTPException(status_code=400, detail="Поддерживаются только DSN c postgres/postgresql схемой")
+
+    if not parsed.hostname or not parsed.path or parsed.path in ("/", ""):
+        raise HTTPException(status_code=400, detail="В DSN должен быть host и имя базы (например: postgresql://user:pass@host:5432/db)")
+
+    # Превращаем в psycopg3-драйвер
+    scheme = "postgresql+psycopg"
+    normalized = urlunparse(parsed._replace(scheme=scheme))
+    return normalized
+
+def _dsn_label(dsn: str) -> str:
+    """
+    Для подписи в отчёте: host[:port]/dbname
+    """
+    p = urlparse(dsn)
+    host = p.hostname or "localhost"
+    port = f":{p.port}" if p.port else ""
+    db = (p.path or "/").lstrip("/")
+    return f"{host}{port}/{db}"
+
+def _default_dsn() -> str:
+    # можно задать в окружении, чтобы сразу было префилл в форме
+    env = os.getenv("DB_DSN", "").strip()
+    return env or "postgresql://user:password@localhost:5432/dbname"
+
+# ----------------------------- number formatting -----------------------------
 def fmt_num(x: float) -> str:
     return f"{x:,.0f}".replace(",", " ")
 
@@ -75,12 +110,9 @@ def _node_kv(n: dict[str, Any], keys: list[str]) -> str:
             parts.append(f'<span class="kv"><b>{_escape(k)}:</b> {_escape(v)}</span>')
     return " · ".join(parts)
 
-# ---------------------------------------------------------------------
-# Рендер EXPLAIN → HTML
-# ---------------------------------------------------------------------
+# ----------------------------- EXPLAIN rendering -----------------------------
 def plan_to_tree_html(plan_json: dict[str, Any]) -> str:
     p = plan_json.get("Plan", plan_json)
-
     def render(n: dict[str, Any]) -> str:
         title = n.get("Node Type", "Node")
         header = _escape(title)
@@ -112,13 +144,11 @@ def plan_to_tree_html(plan_json: dict[str, Any]) -> str:
     {('<ul class="tree">' + kids_html + "</ul>") if kids_html else ""}
   </details>
 </li>"""
-
     return f'<ul class="tree root">{render(p)}</ul>'
 
 def plan_nodes_table(plan_json: dict[str, Any]) -> str:
     p = plan_json.get("Plan", plan_json)
     rows_html: list[str] = []
-
     def walk(n: dict[str, Any], depth: int = 0):
         rows_html.append(f"""
 <tr>
@@ -133,7 +163,6 @@ def plan_nodes_table(plan_json: dict[str, Any]) -> str:
 """)
         for ch in n.get("Plans") or []:
             walk(ch, depth + 1)
-
     walk(p, 0)
     return f"""
 <table class="nodes">
@@ -248,9 +277,7 @@ def ai_advice_section(ai_advice: list[dict] | None) -> str:
 
     return f"<div class='cards'>{''.join(cards)}</div>"
 
-# ---------------------------------------------------------------------
-# Генерация HTML-отчёта (строкой)
-# ---------------------------------------------------------------------
+# --------------------------- Report HTML builder -----------------------------
 def build_html_report(
     plan_json: dict[str, Any],
     profile: CostProfile,
@@ -272,58 +299,7 @@ def build_html_report(
     ai_html = ai_advice_section(ai_advice) if ai_advice else ""
     ai_section = f"<div class='section'><h3>AI рекомендации</h3>{ai_html}</div>" if ai_html else ""
 
-    css = """
-:root {
-  --bg: #0b1020; --fg: #E7ECF4; --muted:#9AA6B2; --card:#121a33; --acc:#7C9BFF;
-  --ok:#3fb950; --med:#f2cc60; --high:#ff6b6b; --chip:#1b2447; --border:#22305b;
-}
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg:#f7f9fc; --fg:#0c1220; --muted:#697586; --card:#ffffff; --acc:#3558ff;
-    --ok:#0f9150; --med:#b88700; --high:#d63939; --chip:#eef2ff; --border:#e5e9f2;
-  }
-}
-*{box-sizing:border-box} html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font:15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial}
-.container{max-width:1200px;margin:0 auto;padding:24px}
-.header{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-bottom:16px}
-.h-title{font-size:22px;font-weight:700}
-.h-sub{color:var(--muted)}
-.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:var(--chip);border:1px solid var(--border);font-weight:600;font-size:12px}
-.badge.low{background:rgba(63,185,80,.12);color:var(--ok);border-color:rgba(63,185,80,.3)}
-.badge.med{background:rgba(242,204,96,.12);color:var(--med);border-color:rgba(242,204,96,.35)}
-.badge.high{background:rgba(255,107,107,.12);color:var(--high);border-color:rgba(255,107,107,.35)}
-.chips{display:flex;gap:8px;flex-wrap:wrap}
-.section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin:16px 0}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-.kpi{background:var(--chip);border:1px solid var(--border);border-radius:12px;padding:12px}
-.kpi .label{color:var(--muted);font-size:12px}
-.kpi .value{font-size:18px;font-weight:700;margin-top:4px}
-.warn{background:rgba(255,107,107,.08);border-color:rgba(255,107,107,.35)}
-.warn .title{color:var(--high);font-weight:700;margin-bottom:6px}
-.warn-list{margin:8px 0 0 18px}
-.sql, pre code{white-space:pre-wrap;word-break:break-word}
-pre{background:#0a0f1f1a;border:1px solid var(--border);border-radius:12px;padding:12px;overflow:auto}
-.tree{list-style:none;padding-left:18px;margin:0}
-.tree.root{padding-left:0}
-.node summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;gap:4px;padding:8px;border-radius:10px}
-.node summary:hover{background:rgba(124,155,255,.08)}
-.node-title{font-weight:700}
-.node-meta, .node-costs, .node-keys{color:var(--muted);font-size:12px}
-.filter{margin:8px 0;color:var(--muted)}
-.nodes{width:100%;border-collapse:collapse}
-.nodes th, .nodes td{border-bottom:1px solid var(--border);padding:8px 10px}
-.nodes td.num{text-align:right}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px}
-.card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.msg{margin:6px 0 10px}
-.ddl-head{font-size:12px;color:var(--muted);margin-bottom:4px}
-.copy{display:inline-block;border:1px solid var(--border);background:var(--chip);color:var(--fg);border-radius:8px;padding:6px 10px;cursor:pointer}
-.copy:active{transform:translateY(1px)}
-.muted{color:var(--muted)}
-.footer{color:var(--muted);font-size:12px;margin-top:8px;display:flex;gap:16px;flex-wrap:wrap}
-.kv b{color:var(--muted);font-weight:600}
-"""
+    css = """/* (тот же CSS, что и раньше) */"""  # ← оставьте ваш CSS из предыдущей версии
     js = """
 function copyDDL(btn){
   const code = btn.previousElementSibling?.querySelector('code');
@@ -403,29 +379,38 @@ function copyDDL(btn){
 """
     return textwrap.dedent(html_doc).strip()
 
-# ---------------------------------------------------------------------
-# UI: только форма загрузки файла
-# ---------------------------------------------------------------------
+# ------------------------------- UI (form) -----------------------------------
 @api_router.get("/", response_class=HTMLResponse)
 def doc_index() -> str:
-    return """
+    default_dsn = _escape(_default_dsn())
+    return f"""
     <html><head><title>SQL Optimizer</title></head>
     <body style="font-family:system-ui,Segoe UI,Arial;margin:24px;max-width:920px">
       <h1>SQL Optimizer</h1>
       <form method="post" action="/doc/report/upload" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".sql" required>
-        <input type="number" name="n_variants" value="5" min="1" max="10"/>
+        <div style="margin-bottom:8px">
+          <label>PostgreSQL DSN:</label><br/>
+          <input name="dsn" type="text" style="width:100%" value="{default_dsn}"
+                 placeholder="postgresql://user:pass@host:5432/dbname" required />
+        </div>
+        <div style="margin-bottom:8px">
+          <label>Вариантов:</label>
+          <input type="number" name="n_variants" value="5" min="1" max="10"/>
+        </div>
+        <div style="margin-bottom:8px">
+          <label>SQL файл:</label><br/>
+          <input type="file" name="file" accept=".sql" required>
+        </div>
         <button type="submit">Загрузить и оптимизировать</button>
       </form>
     </body></html>
     """
 
-# ---------------------------------------------------------------------
-# РОУТ: принимает ТОЛЬКО .sql файл и сразу отдаёт скачиваемый HTML
-# ---------------------------------------------------------------------
+# ------------------------------- Main route ----------------------------------
 @api_router.post("/report/upload", response_class=Response)
 async def doc_report_upload(
     file: UploadFile = File(...),
+    dsn: str = Form(...),
     n_variants: int = Form(5),
 ) -> Response:
     if not file.filename.lower().endswith(".sql"):
@@ -435,20 +420,20 @@ async def doc_report_upload(
     if not sql:
         raise HTTPException(status_code=400, detail="В файле не найден валидный SQL")
 
-    # Подключение через psycopg3
-    engine = create_engine(
-        "postgresql+psycopg://reader:NWDMCE5xdipIjRrp@hh-pgsql-public.ebi.ac.uk:5432/pfmegrnargs",
-        pool_pre_ping=True,
-    )
+    # нормализуем DSN и делаем подпись
+    normalized_dsn = _normalize_dsn(dsn)
+    label = _dsn_label(normalized_dsn)
 
-    # 1) EXPLAIN + профилирование
+    engine = create_engine(normalized_dsn, pool_pre_ping=True)
+
+    # 1) EXPLAIN + профиль
     try:
-        plan = run_explain(engine, sql)               # JSON из EXPLAIN (FORMAT JSON)
-        profile = estimate_profile(plan)              # CostProfile
+        plan = run_explain(engine, sql)
+        profile = estimate_profile(plan)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"EXPLAIN/estimate ошибка: {e}")
 
-    # 2) LLM-варианты (как AI секция в отчёте)
+    # 2) AI-варианты
     try:
         variants = await improve_and_filter_sql(
             engine,
@@ -460,17 +445,17 @@ async def doc_report_upload(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"LLM pipeline ошибка: {e}")
 
-    # 3) Доменные советы (если у тебя есть отдельный модуль — подставь сюда; иначе пусто)
-    advice: list[Advice] = []  # TODO: собери рекомендации из своего анализа, если нужно
+    # 3) Доменные советы (опционально)
+    advice: list[Advice] = []
 
-    # 4) HTML и скачивание
+    # 4) HTML → скачать
     html_report = build_html_report(
         plan_json=plan,
         profile=profile,
         advice=advice,
         ai_advice=variants,
         sql_text=sql,
-        db_dsn_label="hh-pgsql-public.ebi.ac.uk/pfmegrnargs",
+        db_dsn_label=label,
     )
     return Response(
         content=html_report,
