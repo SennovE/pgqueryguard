@@ -14,7 +14,6 @@ repos:
     rev: 1e02bcb  # хэш коммита в данном репозитории
     hooks:
       - id: pgqueryguard-check  # Проверка sql
-      - id: pgqueryguard-fix  # Форматирование
       - id: pgqueryguard-report  # HTML отчет с подсказками для оптимизации 
         args: ["--db-url", "postgresql://user:pass@localhost:5432/postgres"]
 ```
