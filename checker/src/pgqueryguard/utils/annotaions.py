@@ -40,7 +40,8 @@ FixOption = Annotated[
 ]
 DBUrlOption = Annotated[
     str | None,
-    typer.Argument(
+    typer.Option(
+        "--db-url",
         help="Url for database connection",
     ),
 ]
