@@ -1,13 +1,17 @@
 services:
   backend:
-    container_name: ${BACKEND_HOST}
-    hostname: ${BACKEND_HOST}
+    container_name: backend
+    hostname: backend
     build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - '8080:8080'
+      - "8080:8080"
     env_file:
       - ./.env
     volumes:
-      - ./backend/app:/backend/app
+      - ./backend:/app
+    command: >
+      uv run uvicorn app.main:app
+      --host 0.0.0.0 --port 8080
+      --reload --reload-dir app

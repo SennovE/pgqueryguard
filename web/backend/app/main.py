@@ -1,7 +1,7 @@
-from asyncio import run
+from uvicorn import run
 from fastapi import FastAPI
 from app.endpoints import list_of_routes
-from web.backend.app.config import DefaultSettings, get_settings
+from app.config import DefaultSettings, get_settings
 
 def bindRoutes(application: FastAPI, setting: DefaultSettings) -> None:
      for route in list_of_routes:

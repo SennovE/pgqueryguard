@@ -1,21 +1,13 @@
-FROM python:3.12-alpine
+FROM python:3.12-slim
 
-RUN apk add --no-cache curl ca-certificates \
- && update-ca-certificates
+RUN pip install --no-cache-dir uv
 
 WORKDIR /app
+COPY pyproject.toml uv.lock ./
 
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+RUN uv sync --frozen --no-dev
 
-ENV PATH="/root/.local/bin:${PATH}" \
-    PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    UV_LINK_MODE=copy
-
-COPY pyproject.toml uv.lock* ./
-
-RUN uv sync --frozen --no-dev --no-install-project
-
-COPY ./app ./app
+COPY . .
+RUN uv pip install --no-deps -e .
 
 CMD ["uv", "run", "python", "-m", "app.main"]
