@@ -1,0 +1,31 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+authors = [{ name = "Kera", email = "limonchik30ker@gmail.com" }]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.116.1",
+    "httpx>=0.28.1",
+    "psycopg[binary]>=3.1.18",
+    "pydantic-settings>=2.10.1",
+    "python-multipart>=0.0.20",
+    "requests>=2.32.5",
+    "sqlalchemy>=2.0.43",
+    "sqlglot>=27.13.2",
+    "sqlparse>=0.5.3",
+    "typer>=0.17.4",
+    "uvicorn>=0.35.0",
+]
+
+# если нужен CLI-скрипт, укажи правильный модуль и функцию:
+# например, если у тебя есть функция main() в app/main.py:
+# [project.scripts]
+# backend = "app.main:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[build-system]
+requires = ["hatchling>=1.22"]
+build-backend = "hatchling.build"
